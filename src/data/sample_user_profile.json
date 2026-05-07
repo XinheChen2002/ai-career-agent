@@ -1,0 +1,19 @@
+{
+  "name": "Sample User",
+  "background": "Master student with experience in data science, Python, machine learning, and design research.",
+  "current_skills": [
+    "Python",
+    "Pandas",
+    "Scikit-learn",
+    "Data visualization",
+    "Research",
+    "Presentation"
+  ],
+  "target_roles": [
+    "AI Product Manager",
+    "Business Analyst",
+    "Data Analyst"
+  ],
+  "time_frame": "12 weeks",
+  "preferred_location": "Shanghai"
+}

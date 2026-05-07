@@ -1,0 +1,16 @@
+[project]
+name = "ai-career-agent"
+version = "0.1.0"
+description = "A multi-agent career path recommendation system using CrewAI, browser-use, and LangGraph."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "browser-use>=0.12.6",
+    "crewai>=0.148.0",
+    "langgraph>=1.1.10",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.1",
+]
+
+[tool.uv]
+package = false
