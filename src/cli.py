@@ -1,17 +1,29 @@
+"""
+cli.py
+
+Command line interface for the AI career transition recommendation system.
+
+This CLI supports:
+1. Basic graph exploration
+2. Skill gap recommendation
+3. Full career recommendation pipeline
+"""
+
 from src.core.data_loader import load_data
 from src.core.career_graph import CareerTransitionGraph
-from src.workflows.career_workflow import CareerWorkflow
+
+# If your pipeline file is named differently, adjust this import.
+# Recommended file path:
+# src/workflows/career_pipeline.py
+from src.core.pipeline import run_pipeline
 
 
-def build_graph():
+def build_graph(df):
     """
-    Load data and build the career transition graph.
+    Build the career transition graph from the loaded dataset.
     """
-    df = load_data()
-
     graph = CareerTransitionGraph(df)
     graph.build_graph()
-
     return graph
 
 
@@ -48,10 +60,9 @@ def print_transition_path(graph):
 
         return
 
-    # Fallback logic
     recommendation = graph.recommend_skills_with_fallback(
         start_job,
-        target_job
+        target_job,
     )
 
     if recommendation is None:
@@ -72,9 +83,12 @@ def print_transition_path(graph):
 
         print("\nSuggested beginner roadmap:")
         for index, skill in enumerate(sorted(recommendation["missing"]), start=1):
-            print(f"- Week {index}: Learn and practice {skill} through a small project.")
+            print(
+                f"- Step {index}: Learn and practice {skill} "
+                "through a small project."
+            )
 
-        print("- Final Week: Combine these skills into one portfolio project.")
+        print("- Final Step: Combine these skills into one portfolio project.")
         return
 
     print("No transition path found.")
@@ -83,13 +97,13 @@ def print_transition_path(graph):
 def print_missing_skills_by_jobs(graph):
     """
     Recommend missing skills based on current job and target job.
-    This uses the original graph-based recommendation logic.
     """
     current_job = input("Enter your current job: ").strip()
     target_job = input("Enter your target job: ").strip()
 
     recommendation = graph.recommend_skills_with_fallback(
-        current_job, target_job
+        current_job,
+        target_job,
     )
 
     print("\n=== Missing Skills Recommendation ===")
@@ -121,8 +135,11 @@ def print_missing_skills_by_jobs(graph):
         print("- None")
 
     print("\nMissing skills:")
-    for skill in sorted(recommendation["missing"]):
-        print("-", skill)
+    if recommendation["missing"]:
+        for skill in sorted(recommendation["missing"]):
+            print("-", skill)
+    else:
+        print("- No missing skills detected")
 
 
 def print_jobs_by_skill(graph):
@@ -154,55 +171,149 @@ def print_graph_summary(graph):
         print(f"{key}: {value}")
 
 
-def run_agent_workflow(graph):
+def parse_skills_input(skills_text):
     """
-    Run the new multi-agent workflow from CLI input.
+    Convert comma-separated skill input into a clean list.
     """
-    print("\n=== AI Career Agent Workflow ===")
+    if not skills_text:
+        return []
 
-    current_role = input("Enter your current role: ").strip()
-    target_role = input("Enter your target role: ").strip()
-    skills_text = input(
-        "Enter your current skills, separated by commas: "
-    ).strip()
-    background = input("Briefly describe your background: ").strip()
-    time_frame = input("Enter your time frame, e.g. 12 weeks: ").strip()
-    location = input("Enter your preferred location: ").strip()
-
-    current_skills = [
+    return [
         skill.strip().lower()
         for skill in skills_text.split(",")
         if skill.strip()
     ]
 
-    raw_profile = {
-        "current_role": current_role,
-        "target_role": target_role,
-        "current_skills": current_skills,
-        "background": background,
-        "time_frame": time_frame or "12 weeks",
-        "location": location,
-    }
 
-    workflow = CareerWorkflow(graph)
-    result = workflow.run(raw_profile)
+def print_pipeline_result(result):
+    """
+    Print pipeline result in a readable CLI format.
+    """
+    print("\n=== Career Recommendation Result ===")
 
-    print("\n=== User Profile ===")
-    print(result["user_profile"])
+    if result["status"] != "success":
+        print("\nStatus:", result["status"])
+        print("Message:", result["message"])
 
-    print("\n=== Market Profile ===")
-    print(result["market_profile"])
+        available_jobs = result.get("available_jobs", [])
+        if available_jobs:
+            print("\nAvailable target jobs:")
+            for job in available_jobs:
+                print("-", job)
 
-    print("\n=== Skill Gap ===")
-    print(result["skill_gap"])
+        return
 
-    print("\n=== Roadmap ===")
-    for item in result["roadmap"]["weekly_plan"]:
-        print("-", item)
+    output = result["result"]
+
+    print("\nStatus: success")
+    print("Recommendation mode:", result.get("recommendation_mode"))
+    print("Message:", result.get("message"))
+
+    print("\n--- Explanation ---")
+    print(output["explanation"])
+
+    print("\n--- Transition Path ---")
+    transition_path = output.get("transition_path", [])
+
+    if transition_path:
+        for item in transition_path:
+            print(f"- {item['type']}: {item['name']}")
+    else:
+        print("- No graph transition path found")
+
+    print("\n--- Current Skills ---")
+    current_skills = output["skills"]["current"]
+
+    if current_skills:
+        for skill in current_skills:
+            print("-", skill)
+    else:
+        print("- None detected")
+
+    print("\n--- Target Skills ---")
+    target_skills = output["skills"]["target"]
+
+    if target_skills:
+        for skill in target_skills:
+            print("-", skill)
+    else:
+        print("- None detected")
+
+    print("\n--- Shared Skills ---")
+    shared_skills = output["skills"]["shared"]
+
+    if shared_skills:
+        for skill in shared_skills:
+            print("-", skill)
+    else:
+        print("- None")
+
+    print("\n--- Missing Skills ---")
+    missing_skills = output["skills"]["missing"]
+
+    if missing_skills:
+        for skill in missing_skills:
+            print("-", skill)
+    else:
+        print("- No missing skills detected")
+
+    print("\n--- Roadmap ---")
+    roadmap = output["roadmap"]
+
+    if roadmap:
+        for item in roadmap:
+            print(f"{item['step']}. {item['skill']}")
+            print(f"   Goal: {item['learning_goal']}")
+            print(f"   Action: {item['suggested_action']}")
+    else:
+        print("- No roadmap generated")
+
+
+def run_career_pipeline(df):
+    """
+    Run the full career recommendation pipeline from CLI input.
+    """
+    print("\n=== AI Career Recommendation Pipeline ===")
+
+    current_job = input(
+        "Enter your current job, or leave blank if beginner: "
+    ).strip()
+
+    target_job = input("Enter your target job: ").strip()
+
+    skills_text = input(
+        "Enter your current skills, separated by commas, or leave blank: "
+    ).strip()
+
+    background = input(
+        "Briefly describe your background, or leave blank: "
+    ).strip()
+
+    current_skills = parse_skills_input(skills_text)
+
+    if current_job == "":
+        current_job = None
+
+    if background == "":
+        background = None
+
+    result = run_pipeline(
+        df=df,
+        current_job=current_job,
+        target_job=target_job,
+        user_background=background,
+        current_skills=current_skills,
+    )
+
+    print_pipeline_result(result)
 
 
 def main():
-    graph = build_graph()
+    """
+    Main CLI menu.
+    """
+    df = load_data()
+    graph = build_graph(df)
 
     while True:
         print("\n=== AI Career Transition Network ===")
@@ -211,7 +322,7 @@ def main():
         print("3. Recommend missing skills by jobs")
         print("4. Find jobs by skill")
         print("5. Show graph summary")
-        print("6. Run AI career agent workflow")
+        print("6. Run full career recommendation pipeline")
         print("7. Exit")
 
         choice = input("Choose an option: ").strip()
@@ -232,7 +343,7 @@ def main():
             print_graph_summary(graph)
 
         elif choice == "6":
-            run_agent_workflow(graph)
+            run_career_pipeline(df)
 
         elif choice == "7":
             print("Goodbye!")
