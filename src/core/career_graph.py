@@ -189,3 +189,68 @@ class CareerTransitionGraph:
             "missing": missing,
             "shared": shared,
         }
+
+    def recommend_skills_with_fallback(self, current_job, target_job):
+        """
+        Recommend missing skills for a career transition.
+
+        If both current_job and target_job exist in the graph, compare their skills.
+        If current_job does not exist but target_job exists, treat the user as a
+        beginner and recommend all target-job skills.
+        If target_job does not exist, return None.
+        """
+
+        current_clean = self._normalize_job(current_job)
+        target_clean = self._normalize_job(target_job)
+
+        current_node = f"job:{current_clean}"
+        target_node = f"job:{target_clean}"
+
+        # Case 1: target job does not exist
+        if target_node not in self.adjList:
+            return None
+
+        target_skills = {
+            node.replace("skill:", "")
+            for node in self.adjList[target_node]
+            if node.startswith("skill:")
+        }
+
+        # Case 2: current job does not exist
+        # Treat as beginner / unknown background
+        if current_node not in self.adjList:
+            return {
+                "mode": "beginner_fallback",
+                "current_job_found": False,
+                "target_job_found": True,
+                "current": set(),
+                "target": target_skills,
+                "shared": set(),
+                "missing": target_skills,
+                "message": (
+                    f"'{current_job}' was not found in the job graph. "
+                    f"The system treats this as a beginner or unknown-background "
+                    f"transition and recommends all skills required for '{target_job}'."
+                ),
+            }
+
+        # Case 3: both jobs exist
+        current_skills = {
+            node.replace("skill:", "")
+            for node in self.adjList[current_node]
+            if node.startswith("skill:")
+        }
+
+        missing = target_skills - current_skills
+        shared = current_skills & target_skills
+
+        return {
+            "mode": "job_to_job",
+            "current_job_found": True,
+            "target_job_found": True,
+            "current": current_skills,
+            "target": target_skills,
+            "shared": shared,
+            "missing": missing,
+            "message": "Both jobs were found. Missing skills were calculated by comparing current and target job skills.",
+        }
