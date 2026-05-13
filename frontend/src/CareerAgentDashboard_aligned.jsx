@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /**
  * CareerAgentDashboard.jsx
@@ -29,6 +29,7 @@ import { useMemo, useState } from "react";
 
 const API_BASE_URL = "http://localhost:8000";
 const RECOMMEND_ENDPOINT = `${API_BASE_URL}/recommend`;
+const JOBS_ENDPOINT = `${API_BASE_URL}/jobs`;
 
 const EMPTY_STATE = {
   raw_profile: {},
@@ -524,7 +525,7 @@ function StatusBanner({ status, message, error }) {
   );
 }
 
-function ProfileForm({ onSubmit, loading }) {
+function ProfileForm({ onSubmit, loading, availableJobs = [], jobsLoading = false }) {
   const [form, setForm] = useState({
     current_role: "",
     target_role: "",
@@ -556,9 +557,42 @@ function ProfileForm({ onSubmit, loading }) {
   return (
     <form onSubmit={handleSubmit}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color: "#8a8880", marginBottom: 4 }}>CURRENT ROLE</div>
+          <select
+            style={inputStyle}
+            value={form.current_role}
+            onChange={(e) => set("current_role", e.target.value)}
+            disabled={jobsLoading}
+          >
+            <option value="">Not listed / beginner</option>
+            {availableJobs.map((job) => (
+              <option key={`current-${job}`} value={job}>
+                {job}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <div style={{ fontSize: 11, color: "#8a8880", marginBottom: 4 }}>TARGET ROLE</div>
+          <select
+            style={inputStyle}
+            value={form.target_role}
+            onChange={(e) => set("target_role", e.target.value)}
+            disabled={jobsLoading || !availableJobs.length}
+            required
+          >
+            <option value="">{jobsLoading ? "Loading jobs..." : "Select target role"}</option>
+            {availableJobs.map((job) => (
+              <option key={`target-${job}`} value={job}>
+                {job}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {[
-          ["Current role", "current_role", "e.g. data analyst"],
-          ["Target role", "target_role", "e.g. ai engineer"],
           ["Location", "location", "e.g. Ann Arbor"],
           ["Timeline", "time_frame", "e.g. 12 weeks"],
         ].map(([label, key, placeholder]) => (
@@ -567,6 +601,10 @@ function ProfileForm({ onSubmit, loading }) {
             <input style={inputStyle} placeholder={placeholder} value={form[key]} onChange={(e) => set(key, e.target.value)} />
           </div>
         ))}
+      </div>
+
+      <div style={{ fontSize: 11, color: "#aaa9a2", margin: "-4px 0 12px" }}>
+        Current role can be left as beginner. Target role is selected from the backend job graph.
       </div>
 
       <div style={{ marginBottom: 12 }}>
@@ -612,6 +650,8 @@ export default function CareerAgentDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [availableJobs, setAvailableJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
 
   const tabs = [
     { id: "profile", label: "Profile" },
@@ -620,6 +660,43 @@ export default function CareerAgentDashboard() {
     { id: "roadmap", label: "Roadmap" },
     { id: "report", label: "Report" },
   ];
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadJobs() {
+      setJobsLoading(true);
+
+      try {
+        const response = await fetch(JOBS_ENDPOINT);
+
+        if (!response.ok) {
+          throw new Error(`Backend returned ${response.status} while loading jobs.`);
+        }
+
+        const data = await response.json();
+        const jobs = toArray(data.jobs ?? data.available_jobs ?? data.result ?? data);
+
+        if (!ignore) {
+          setAvailableJobs(jobs);
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(err.message || "Failed to load available jobs from backend.");
+        }
+      } finally {
+        if (!ignore) {
+          setJobsLoading(false);
+        }
+      }
+    }
+
+    loadJobs();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const headerText = useMemo(() => {
     const current = state.user_profile.current_role || "Unknown";
@@ -647,6 +724,9 @@ export default function CareerAgentDashboard() {
       const normalizedState = normalizeApiResponse(apiData, form);
 
       setState(normalizedState);
+      if (normalizedState.pipeline_meta.available_jobs.length) {
+        setAvailableJobs(normalizedState.pipeline_meta.available_jobs);
+      }
       setShowForm(false);
       setTab("gap");
     } catch (err) {
@@ -700,7 +780,7 @@ export default function CareerAgentDashboard() {
 
         {showForm ? (
           <Card title="New Career Profile" tag="UserProfile → pipeline.run()" accent="#3d7a5a">
-            <ProfileForm onSubmit={handleSubmit} loading={loading} />
+            <ProfileForm onSubmit={handleSubmit} loading={loading} availableJobs={availableJobs} jobsLoading={jobsLoading} />
           </Card>
         ) : (
           <>

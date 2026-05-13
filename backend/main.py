@@ -171,6 +171,22 @@ def get_pipeline() -> CareerRecommendationPipeline:
     """
     df = load_jobs_dataframe()
     return CareerRecommendationPipeline(df)
+def reload_pipeline() -> None:
+    """
+    Clear the cached pipeline.
+
+    The next call to get_pipeline() will reload the jobs dataframe
+    and rebuild the CareerRecommendationPipeline.
+    """
+    get_pipeline.cache_clear()
+def run_recommendation(request: RecommendationRequest) -> Dict[str, Any]:
+    """
+    Run validation + pipeline execution.
+    """
+    target_role = request.resolved_target_role()
+    current_role = request.resolved_current_role()
+    background = request.resolved_background()
+
 
 
 # -----------------------------------------------------------------------------
@@ -377,6 +393,7 @@ def recommend_as_state(request: RecommendationRequest) -> CareerState:
     """
     pipeline_response = run_recommendation(request)
     return pipeline_result_to_career_state(request, pipeline_response)
+
 
 
 # -----------------------------------------------------------------------------
