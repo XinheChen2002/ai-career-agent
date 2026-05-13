@@ -675,7 +675,12 @@ export default function CareerAgentDashboard() {
         }
 
         const data = await response.json();
-        const jobs = toArray(data.jobs ?? data.available_jobs ?? data.result ?? data);
+        console.log("Jobs response from backend:", data);
+        const jobs = Array.isArray(data)
+          ? data
+          : Array.isArray(data.jobs)
+            ? data.jobs
+            : [];
 
         if (!ignore) {
           setAvailableJobs(jobs);
