@@ -661,47 +661,37 @@ export default function CareerAgentDashboard() {
     { id: "report", label: "Report" },
   ];
 
-  useEffect(() => {
-    let ignore = false;
+  async function loadJobs() {
+  setJobsLoading(true);
 
-    async function loadJobs() {
-      setJobsLoading(true);
+  try {
+    const response = await fetch(JOBS_ENDPOINT);
 
-      try {
-        const response = await fetch(JOBS_ENDPOINT);
-
-        if (!response.ok) {
-          throw new Error(`Backend returned ${response.status} while loading jobs.`);
-        }
-
-        const data = await response.json();
-        console.log("Jobs response from backend:", data);
-        const jobs = Array.isArray(data)
-          ? data
-          : Array.isArray(data.jobs)
-            ? data.jobs
-            : [];
-
-        if (!ignore) {
-          setAvailableJobs(jobs);
-        }
-      } catch (err) {
-        if (!ignore) {
-          setError(err.message || "Failed to load available jobs from backend.");
-        }
-      } finally {
-        if (!ignore) {
-          setJobsLoading(false);
-        }
-      }
+    if (!response.ok) {
+      throw new Error(`Backend returned ${response.status} while loading jobs.`);
     }
 
-    loadJobs();
+    const data = await response.json();
+    console.log("Jobs response from backend:", data);
 
-    return () => {
-      ignore = true;
-    };
-  }, []);
+    const jobs = Array.isArray(data)
+      ? data
+      : Array.isArray(data.jobs)
+        ? data.jobs
+        : [];
+
+    setAvailableJobs(jobs);
+  } catch (err) {
+    console.error("Failed to load jobs:", err);
+    setError(err.message || "Failed to load available jobs from backend.");
+  } finally {
+    setJobsLoading(false);
+  }
+}
+
+useEffect(() => {
+  loadJobs();
+}, []);
 
   const headerText = useMemo(() => {
     const current = state.user_profile.current_role || "Unknown";
@@ -762,9 +752,19 @@ export default function CareerAgentDashboard() {
 
         <button
           onClick={() => {
-            setShowForm((value) => !value);
+            setShowForm((value) => {
+              const nextValue = !value;
+
+              if (nextValue && availableJobs.length === 0) {
+                loadJobs();
+              }
+
+              return nextValue;
+            });
+
             setError("");
           }}
+          
           style={{
             background: "transparent",
             border: "1px solid #3a3a38",
