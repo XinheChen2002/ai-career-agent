@@ -2,3 +2,7 @@ streamlit
 pandas
 pydantic
 python-dotenv
+fastapi
+uvicorn[standard]
+networkx
+python-multipart
