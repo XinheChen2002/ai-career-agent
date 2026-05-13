@@ -27,7 +27,7 @@ import { useEffect, useMemo, useState } from "react";
  *    { raw_profile, user_profile, market_profile, skill_gap, roadmap, final_report }
  */
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://ai-career-agent-backend-ft74.onrender.com";
 const RECOMMEND_ENDPOINT = `${API_BASE_URL}/recommend`;
 const JOBS_ENDPOINT = `${API_BASE_URL}/jobs`;
 
