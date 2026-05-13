@@ -19,6 +19,7 @@ It is designed to be used by:
 
 from typing import Optional, Dict, Any, List
 import pandas as pd
+import re
 
 from career_graph import CareerTransitionGraph
 
@@ -188,6 +189,9 @@ class CareerRecommendationPipeline:
 
     def __init__(self, df: pd.DataFrame):
         self.df = df.copy()
+
+        if "job_title" in self.df.columns:
+            self.df["job_title"] = self.df["job_title"].apply(normalize_text)
         self.graph = CareerTransitionGraph(self.df)
         self.graph.build_graph()
 
@@ -362,6 +366,19 @@ class CareerRecommendationPipeline:
 # ============================================================
 # Functional wrapper
 # ============================================================
+def normalize_text(value: Optional[str]) -> Optional[str]:
+    """
+    Normalize job names and user text for consistent matching.
+    """
+    if value is None:
+        return None
+
+    value = str(value).strip().lower()
+    value = value.replace("_", " ")
+    value = value.replace("-", " ")
+    value = re.sub(r"\s+", " ", value)
+
+    return value
 
 def run_pipeline(
     df: pd.DataFrame,
@@ -374,7 +391,12 @@ def run_pipeline(
 
     This is useful for CLI, API, and tests.
     """
+    target_job = normalize_text(target_job)
+    current_job = normalize_text(current_job)
+    user_background = normalize_text(user_background)
+
     pipeline = CareerRecommendationPipeline(df)
+
     return pipeline.run(
         target_job=target_job,
         current_job=current_job,
