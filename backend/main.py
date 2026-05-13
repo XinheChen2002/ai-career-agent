@@ -33,16 +33,6 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # -----------------------------------------------------------------------------
 # Project paths
 # -----------------------------------------------------------------------------
@@ -188,16 +178,6 @@ def reload_pipeline() -> None:
     and rebuild the CareerRecommendationPipeline.
     """
     get_pipeline.cache_clear()
-def run_recommendation(request: RecommendationRequest) -> Dict[str, Any]:
-    """
-    Run validation + pipeline execution.
-    """
-    target_role = request.resolved_target_role()
-    current_role = request.resolved_current_role()
-    background = request.resolved_background()
-
-
-
 # -----------------------------------------------------------------------------
 # Response shaping helpers
 # -----------------------------------------------------------------------------
@@ -307,15 +287,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8501",
-        "http://127.0.0.1:8501",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
