@@ -4,9 +4,12 @@
 This project is an AI career path recommendation agent. It helps users compare their current skills with a target job and generates a learning roadmap.
 
 ## Project Structure
-- `frontend/`: React frontend.
-- `backend/`: FastAPI backend.
-- `src/`: core logic and pipeline code.
+- `server/`: Express + MongoDB + TypeScript back end (SI 679 course app; code goes in `server/src/`).
+- `client/`: React + Vite + TypeScript front end (SI 679 course app; code goes in `client/src/`).
+- `docs/`: planning docs for the course app.
+- `frontend/`: legacy React frontend (original prototype).
+- `backend/`: legacy FastAPI backend (original prototype).
+- `src/`: legacy core logic and pipeline code.
 - `src/data/`: source data.
 - `tests/`: test files.
 
