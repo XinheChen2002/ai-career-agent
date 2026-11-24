@@ -65,7 +65,7 @@ reconnects.
 
 ## Where it lives
 
-Planned locations; none of these files exist yet.
+Planned implementation locations. `server/src/index.ts` already exists for HTTP startup; its Socket.IO integration and the other files listed below are not implemented.
 
 | Path | What it will hold |
 | --- | --- |

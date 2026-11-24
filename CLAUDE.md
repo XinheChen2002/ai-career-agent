@@ -1,32 +1,40 @@
 # AI Career Agent Project Instructions
 
 ## Project Goal
-This project is an AI career path recommendation agent. It helps users compare their current skills with a target job and generates a learning roadmap.
+Help people with little or fragmented AI knowledge — including workers in agriculture, healthcare, construction and manufacturing, and people in data, HCI and software engineering — identify skill gaps and build a learning path for a career transition or for applying AI in their existing profession.
+
+This is a career-development product, not a GitHub repository recommendation tool. The product goal is broader than the features currently implemented.
 
 ## Project Structure
-- `server/`: Express + MongoDB + TypeScript back end (SI 679 course app; code goes in `server/src/`).
-- `client/`: React + Vite + TypeScript front end (SI 679 course app; code goes in `client/src/`).
-- `docs/`: planning docs for the course app.
-- `frontend/`: legacy React frontend (original prototype).
-- `backend/`: legacy FastAPI backend (original prototype).
-- `src/`: legacy core logic and pipeline code.
-- `src/data/`: source data.
-- `tests/`: test files.
+- `server/`: Express + MongoDB + TypeScript course application; code in `server/src/`.
+- `client/`: React + Vite + TypeScript course application; code in `client/src/`.
+- `docs/`: course application design and implementation guidance.
+- `backend/`, `frontend/`: original FastAPI and React prototype.
+- `src/`, `app/`, `tests/`: original Python logic, prototype interfaces and Python tests.
+- `src/data/`: original CSV data; course sample data lives in `server/src/data/`.
+
+## Verified Implementation Boundary
+- The course app has MongoDB types, collection helpers and seed data for skills, jobs, users and plans.
+- Its only HTTP endpoint is public `GET /jobs`; the client already calls it.
+- Authentication, role enforcement, profiles, skill-gap calculation, plan generation, plan endpoints and real-time events are planned for the course app, not implemented.
+- The Python prototype is separate. Its `reload_pipeline()` helper is not an HTTP reload endpoint; do not infer routes from earlier conversations.
+- Read the selected branch's code before claiming a feature exists. Installed dependencies and design documents are not evidence of implemented behavior.
 
 ## Development Rules
 - Do not modify `.env`, `.venv`, or `uv.lock` unless explicitly asked.
-- Keep backend API changes compatible with the React frontend.
-- Prefer small, testable changes.
-- When modifying pipeline logic, explain which function changed and why.
-- Use clear Python function names and add comments for non-obvious logic.
+- Default course-app changes to `server/` and `client/`; use the prototype directories when the task explicitly concerns that prototype.
+- Keep each backend's API compatible with its own frontend; the two `GET /jobs` responses are different.
+- Prefer small, testable changes and explain the file, function and reason for each change.
+- Use TypeScript conventions for the course app, including `.js` suffixes on relative imports. A source import of `../config.js` resolves to `config.ts`; do not create a duplicate config file.
+- Keep code readable; explain non-obvious logic and avoid unnecessary dependencies.
+- Treat planning docs as plans unless confirmed by routes, services and tests.
+- Run relevant package scripts from `server/` or `client/`, not the repository root. Follow README setup instructions.
 
 ## Current Priorities
-- Connect frontend to real backend API.
-- Add reload endpoint.
-- Keep source data structure consistent.
-- Prepare for future crawler-based data updates.xs
+Follow `docs/plan.md`: accounts and authorization, catalog management, profiles and skill gaps, study plans and asynchronous generation, then real-time updates and complete UI flows. These remain planned.
+Automatic crawling and broader agent orchestration are longer-term work, not current course-app capabilities.
 
-# CLAUD skills from andrej-karpathy-skills
+## Coding Guidelines from andrej-karpathy-skills
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 

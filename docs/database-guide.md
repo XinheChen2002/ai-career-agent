@@ -238,7 +238,7 @@ npm run seed
 | `users` | 3 | `data/users-seed.ts` | `usersSeed`、`seedUserIds`、`SEED_PASSWORD` |
 | `plans` | 2 | `data/plans-seed.ts` | `plansSeed` |
 
-- **可以重复运行。** 每条数据按固定的 `_id` 写入，再跑一次只会更新同样的文档，不会产生重复。
+- **可以重复运行。** 每条数据按固定的 `_id` 整体替换或插入，不会产生重复；对这些样例文档所做的修改也会被覆盖，样例用户密码会重新散列写入。
 - **不会删除数据。** 数据库里有、seed 文件里没有的文档会原样保留。
 - **样例用户是虚构的。** 1 个管理员和 2 个普通用户，共用一个仅供本地开发的密码，定义在 `data/users-seed.ts` 里。部署时不能直接使用。
 - **数据来源。** 一部分职业和技能来自原型项目的数据集，其余是为本项目编写的示例数据，各 seed 文件开头的注释有说明。
@@ -247,7 +247,7 @@ npm run seed
 
 ## 5. 怎么使用
 
-相对导入要写 `.js` 后缀。下面的路径以 `server/src/` 下的一级目录（如 `controllers/`）为例。
+相对导入要写 `.js` 后缀；源码仍为 `.ts`，例如 `../config.js` 对应 `server/src/config.ts`，无需另外创建 `config.js`。启动示例位于 `server/src/index.ts`，使用 `./`；controller 和测试示例位于其下一级目录，使用 `../`。
 
 ### 服务器启动时（A）
 
@@ -300,7 +300,7 @@ HTTP 接口由 A 负责，以 [`endpoints.md`](endpoints.md) 为准。下表只�
 
 | 集合 | 接口 | 状态 |
 | --- | --- | --- |
-| `jobs` | `GET /jobs` | Checkpoint 1 实现；数据层的 `getJobs()` 已就绪，HTTP 层待写 |
+| `jobs` | `GET /jobs` | 已实现：路由、controller、`getJobs()` 及端到端测试均在仓库中 |
 | `jobs`、`skills` | 管理员对职业和技能的增删改 | 规划中，路径待定 |
 | `users` | 注册、登录、读取和修改个人资料 | 规划中，路径待定 |
 | `plans` | `GET /plans`、`GET /plans/:planId` | 规划中 |

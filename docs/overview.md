@@ -42,7 +42,7 @@ things to learn, which they can then tick off over time.
 - An *admin* can add, edit and remove jobs and skills, so that the catalog
   stays accurate as the field changes.
 
-## What's live
+## Planned real-time behavior
 
 Two things happen without refreshing the page. Both are sent only to the user
 they belong to.

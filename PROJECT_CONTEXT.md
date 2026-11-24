@@ -1,212 +1,43 @@
-# Project Context: GitHub Path Recommendation Agent
+# Project Context: AI Career Agent
 
-## 1. Project Goal
+## Product goal and audience
 
-This project is a GitHub Path Recommendation Agent.
+Help people with no AI background or fragmented AI knowledge learn and apply AI to improve their careers. Target users include traditional-industry workers (agriculture, healthcare, construction and manufacturing) and people in data, HCI and software engineering. Users may want to change careers or bring AI into their existing work.
 
-The goal is to help users explore GitHub repositories more efficiently by analyzing their learning goals, current skill level, and preferred direction, then recommending suitable GitHub repositories, learning paths, or project structures.
+The intended flow is: describe a background and current skills, choose a target role, identify missing skills, generate an ordered learning plan, and track progress. This is the product goal, not a claim that every step is implemented.
 
-The project is designed as a small AI-agent-based system rather than a simple chatbot. It should show clear separation between user input, agent reasoning, recommendation logic, and final output.
+## Two implementations in this repository
 
-## 2. Target Users
+| Implementation | Locations | Current boundary |
+| --- | --- | --- |
+| SI 679 course app | `server/`, `client/`, `docs/` | Express/MongoDB/TypeScript API and React/Vite/TypeScript client; currently a public job list |
+| Original prototype | `backend/`, `frontend/`, `src/`, `app/`, `tests/` | FastAPI wrapper and Python career graph/pipeline, with separate React and Streamlit interfaces |
 
-The target users are people who want to learn AI, data science, software engineering, or project-based coding through GitHub repositories.
+Use the course app for course development. Consult the original prototype for existing recommendation logic and data; it is not already integrated into Express.
 
-Typical users may include:
+## Implemented course-app flow
 
-- Beginners who do not know which GitHub projects are suitable for them
-- Students who want to build portfolio projects
-- Career transitioners who want to enter AI or data-related roles
-- Users who feel overwhelmed by many GitHub repositories and need structured recommendations
+1. `server/src/scripts/seed.ts` loads illustrative skills, jobs, users and plans into MongoDB.
+2. `server/src/index.ts` connects to the database and creates indexes.
+3. `server/src/app.ts` mounts `GET /jobs`, handled by the jobs router/controller and `db/jobs-repository.ts`.
+4. `client/src/api/jobs.ts` requests the API and `client/src/App.tsx` displays jobs.
 
-## 3. Core Use Case
+The seed uses stable ids and replacement upserts: rerunning it replaces matching sample documents, including changes to them, while leaving documents with other ids alone.
 
-The user provides a structured input, such as:
+## Planned course-app features
 
-- Current skill level
-- Learning goal
-- Preferred technical direction
-- Time available
-- Project difficulty preference
-- Existing background
+Accounts and role enforcement; profile editing; skill-gap analysis; learning plans; asynchronous generation tasks; progress updates; per-user Socket.IO events; admin catalog editing; deployment. See [the development plan](docs/plan.md).
 
-The system then returns:
+The `generation_tasks` collection is planned. User and plan types/seed data do not mean login or plan APIs exist. Socket.IO and JWT dependencies do not mean those features are wired up. LLM-written tasks are a stretch goal, not a verified capability.
 
-- Recommended GitHub repositories or project types
-- Explanation of why each recommendation fits the user
-- Suggested learning path
-- Possible next actions
-- Optional warnings about difficulty, prerequisites, or missing skills
+## Original prototype boundaries
 
-## 4. Current Architecture
+`backend/main.py` declares `GET /`, `GET /health`, `GET /jobs`, `GET /graph-summary`, `POST /recommend` and `POST /recommend/state`. Its `reload_pipeline()` function clears a cache, but has no HTTP route. It reads `src/data/future_jobs_dataset.csv`.
 
-The current system is moving toward a multi-agent architecture.
+The prototype and Express `GET /jobs` contracts differ; do not switch client URLs between them without adapting the data contract. Python module names containing “agent” do not by themselves demonstrate autonomous or LLM-driven behavior.
 
-The basic workflow is:
+## Working agreements
 
-```text
-User Input JSON
-        ↓
-Input Parser / Profile Agent
-        ↓
-Goal Analysis Agent
-        ↓
-Repository Matching Agent
-        ↓
-Path Planning Agent
-        ↓
-Final Response Generator
+Follow [AGENTS.md](AGENTS.md) and [README.md](README.md). Make focused changes, explain the files and reasons, preserve API compatibility, and validate the relevant implementation. Keep implemented behavior distinct from proposals. Do not invent repository-search agents, files or endpoints.
 
-The system should not be designed as one large function. Each part should have a clear responsibility.
-
-5. Current File Structure
-
-The current project may include folders such as:
-
-    github-path-agent/
-    │
-    ├── data/
-    │   ├── user_input.json
-    │   └── sample_repos.json
-    │
-    ├── src/
-    │   ├── main.py
-    │   ├── agents/
-    │   │   ├── profile_agent.py
-    │   │   ├── goal_agent.py
-    │   │   ├── repo_agent.py
-    │   │   └── planning_agent.py
-    │   │
-    │   ├── utils/
-    │   │   ├── data_loader.py
-    │   │   └── formatter.py
-    │   │
-    │   └── config.py
-    │
-    ├── tests/
-    │   └── test_main.py
-    │
-    ├── README.md
-    ├── pyproject.toml
-    ├── .env
-    ├── .gitignore
-    └── PROJECT_CONTEXT.md
-
-The exact structure may change, but the project should keep a modular layout.
-
-6. Agent Design
-
-The project may include four main agents:
-
-1. Profile Agent
-
-Responsible for reading and understanding the user's background.
-
-Input:
-
-Skill level
-Technical background
-Career goal
-Preferred learning style
-Available time
-
-Output:
-
-A structured user profile
-2. Goal Analysis Agent
-
-Responsible for interpreting the user's learning or career goal.
-
-Input:
-
-User profile
-Raw user goal
-
-Output:
-
-Refined goal
-Required technical areas
-Difficulty level
-Missing prerequisites
-3. Repository Matching Agent
-
-Responsible for matching the user with suitable GitHub repositories or project types.
-
-Input:
-
-Refined goal
-Skill level
-Repository metadata
-
-Output:
-
-Ranked repository recommendations
-Reason for each match
-4. Path Planning Agent
-
-Responsible for turning recommendations into an actionable learning path.
-
-Input:
-
-Recommended repositories
-User profile
-Goal analysis
-
-Output:
-
-Step-by-step learning plan
-Suggested order
-Estimated difficulty
-Next actions
-7. Current Progress
-
-The project environment has already been set up.
-
-The current system can run a basic version of the recommendation workflow.
-
-The next development goals are:
-
-Move user input into a JSON file
-Improve the four-agent structure
-Make each agent responsible for a specific task
-Improve output formatting
-Add simple tests
-Write a clear README
-Make the project easier to explain in a resume or portfolio
-8. Rules for AI Collaboration
-
-When helping me modify this project, please follow these rules:
-
-Do not rewrite the whole project unless I explicitly ask.
-Modify code step by step.
-Explain which file should be changed.
-Explain why the change is needed.
-Keep the code beginner-friendly and readable.
-Prefer simple Python structures before introducing complex frameworks.
-Do not add unnecessary dependencies.
-Keep the project suitable for a student portfolio.
-When adding an agent, clearly explain its input, output, and responsibility.
-When changing architecture, first explain the reason before writing code.
-9. Coding Style
-
-Please follow these coding preferences:
-
-Use clear function names.
-Add short comments for important logic.
-Keep functions small.
-Avoid overly abstract code.
-Use type hints when helpful.
-Keep the project easy to run from main.py.
-Make the data flow easy to understand.
-10. Current Development Priority
-
-The current priority is not to build a perfect production-level system.
-
-The priority is to build a clear, explainable, portfolio-ready AI agent project that shows:
-
-User input design
-Multi-agent workflow
-Recommendation logic
-Structured output
-Clean project organization
-Ability to iterate with AI tools
+For setup use README; for data use [data-model.md](docs/data-model.md) and [database-guide.md](docs/database-guide.md); for current routes and planned routes use [endpoints.md](docs/endpoints.md).

@@ -53,6 +53,8 @@ cd ../client && npm install
 
 ### Environment
 
+Run the following commands from the repository root (after the install commands above, use `cd ..` to leave `client/`).
+
 ```bash
 cp server/.env.example server/.env    # then set JWT_SECRET
 cp client/.env.example client/.env
@@ -119,7 +121,9 @@ Done. Database: "ai_career_agent".
 ```
 
 It is safe to run again: every document is written by a fixed id, so a second
-run updates the same documents and adds no duplicates. It does not delete
+run replaces the same sample documents and adds no duplicates. Changes to those
+sample documents are overwritten, including resetting sample-user passwords.
+It does not delete
 anything you added yourself.
 
 The sample data is illustrative. Part of it comes from the dataset the original
@@ -128,7 +132,7 @@ prototype used; the rest was written for this project. See
 
 ## The API
 
-One endpoint so far. The full plan is in [`docs/endpoints.md`](docs/endpoints.md).
+One endpoint so far. Current behavior and the planned endpoint outline are in [`docs/endpoints.md`](docs/endpoints.md).
 
 ### `GET /jobs`
 

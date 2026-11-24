@@ -18,7 +18,7 @@ What the `checkpoint-1` tag contains.
 The app is not finished without these. Listed in the order we will build them,
 because each one depends on the ones above it.
 
-1. **Accounts and login.** Register, log in, JWT on every request, passwords
+1. **Accounts and login.** Register, log in, JWT required on protected requests (public catalog reads remain open), passwords
    stored as bcrypt hashes.
 2. **Roles.** Visitor, user and admin, enforced on the server for every
    endpoint, including the rule that a user can only reach their own data.
